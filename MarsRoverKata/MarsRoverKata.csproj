@@ -45,9 +45,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IShipControl.cs" />
     <Compile Include="MarsRover.cs" />
+    <Compile Include="MarsRoverShip.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RotationDirection.cs" />
+    <Compile Include="RotationShipControl.cs" />
     <Compile Include="RoverPosition.cs" />
+    <Compile Include="ShipControl.cs" />
+    <Compile Include="TranslationDirection.cs" />
+    <Compile Include="TranslationShipControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
