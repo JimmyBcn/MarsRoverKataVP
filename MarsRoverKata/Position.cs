@@ -1,23 +1,23 @@
-﻿using System.Collections.Generic;
-
-namespace MarsRoverKata
+﻿namespace MarsRoverKata
 {
-    public class RoverPosition
+    public class Position
     {
-        public int X { get; }
-        public int Y { get; }
-        public char Direction { get; }
-
-        public RoverPosition(int x, int y, char direction)
+        public Position(int x, int y, char direction)
         {
             X = x;
             Y = y;
             Direction = direction;
         }
 
+        public int X { get; }
+
+        public int Y { get; }
+
+        public char Direction { get; }
+
         public override bool Equals(object obj)
         {
-            var position = obj as RoverPosition;
+            var position = obj as Position;
             return position != null &&
                    X == position.X &&
                    Y == position.Y &&
