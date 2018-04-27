@@ -1,38 +1,31 @@
-﻿namespace MarsRoverKata
+﻿using System;
+using System.Reactive.Linq;
+
+namespace MarsRoverKata
 {
-    public class MarsRoverShip
+    public class MarsRoverShip: IDisposable
     {
+        private readonly TranslationShipControl translationShipControl;
         private readonly RotationShipControl rotationShipControl;
-        public readonly TranslationShipControl translationShipControl;
 
-        public MarsRoverShip(RotationShipControl rotationShipControl, TranslationShipControl translationShipControl)
-        {            
-            this.rotationShipControl = rotationShipControl;
-            this.translationShipControl = translationShipControl;
-        }
+        private IDisposable translationSubscription;
 
-        public void Navigate(char command)
+        public MarsRoverShip(MarsRoverBus bus)
         {
-            switch (command)
-            {
-                case 'F':
-                    this.translationShipControl.Translate(this.Position.Direction, TranslationDirection.Forewards);
-                    break;
-                case 'B':
-                    this.translationShipControl.Translate(this.Position.Direction, TranslationDirection.Backguards);
-                    break;
-                case 'R':
-                    this.rotationShipControl.Rotate(RotationDirection.Right);
-                    break;
-                case 'L':
-                    this.rotationShipControl.Rotate(RotationDirection.Left);
-                    break;
-            }
+            this.rotationShipControl = new RotationShipControl(bus);
+            this.translationShipControl = new TranslationShipControl(bus, this.rotationShipControl);
+
+            translationSubscription = this.translationShipControl.TranslationStream
+                .Subscribe(translation => this.Position = translation);
         }
 
-        public RoverPosition Position => new RoverPosition(
-            this.translationShipControl.GetCurrentXPosition(),
-            this.translationShipControl.GetCurrentYPosition(),
-            this.rotationShipControl.GetCurrentDirection());        
+        public RoverPosition Position { get; private set; }
+
+        public void Dispose()
+        {
+            this.rotationShipControl.Dispose();
+            this.translationShipControl.Dispose();
+            this.translationSubscription.Dispose();
+        }
     }
 }

@@ -1,80 +1,77 @@
-﻿namespace MarsRoverKata
+﻿using System;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+
+namespace MarsRoverKata
 {
-    public class TranslationShipControl : ShipControl
+    public class TranslationShipControl : IDisposable
     {
         private int x;
         private int y;
-        private int planetX;
-        private int planetY;
+        private char currentDirection;
 
-        public override void Calibrate()
+        private readonly MarsRoverBus bus;
+        private readonly RotationShipControl rotationShipControl;
+
+        private IDisposable busSubscription;
+        private IDisposable rotationControlSubscription;
+
+        public TranslationShipControl(MarsRoverBus bus, RotationShipControl rotationShipControl)
         {
+            this.bus = bus;
+            this.rotationShipControl = rotationShipControl;
+            
             this.x = 0;
             this.y = 0;
+
+            this.TranslationStream = new Subject<RoverPosition>();
+            
+            this.busSubscription = this.bus.CommandsStream
+                .Subscribe(
+                    command =>
+                    {
+                        switch (command)
+                        {
+                            case 'F':
+                                this.Move(TranslationDirection.Forewards);
+                                break;
+                            case 'B':
+                                this.Move(TranslationDirection.Backguards);
+                                break;
+                        }
+                    });
+
+            this.rotationControlSubscription = this.rotationShipControl.RotationStream
+                .Subscribe(direction => this.currentDirection = direction);
         }
 
-        public TranslationShipControl(int planetX, int planetY)
+        public Subject<RoverPosition> TranslationStream { get; set; }
+
+        public void Dispose()
         {
-            this.planetX = planetX;
-            this.planetY = planetY;
+            this.busSubscription.Dispose();
+            this.rotationControlSubscription.Dispose();
         }
 
-        public void Translate(char currentDirection, TranslationDirection translationDirection)
+        private void Move(TranslationDirection translationDirection)
         {
-            // TODO: Implement wrapping on boundaries (using planetX and planetY)
-            switch (currentDirection)
+            switch (this.currentDirection)
             {
                 case 'N':
-                    if (translationDirection == TranslationDirection.Forewards)
-                    {
-                        this.y++;
-                    }
-                    else
-                    {
-                        this.y--;
-                    }                    ;
+                    this.y = translationDirection == TranslationDirection.Forewards ? this.y + 1 :this.y - 1;
                     break;
                 case 'E':
-                    if (translationDirection == TranslationDirection.Forewards)
-                    {
-                        this.x++;
-                    }
-                    else
-                    {
-                        this.x--;
-                    }                    
+                    this.x = translationDirection == TranslationDirection.Forewards ? this.x + 1 : this.x - 1;
                     break;
                 case 'S':
-                    if (translationDirection == TranslationDirection.Forewards)
-                    {
-                        this.y--;
-                    }
-                    else
-                    {
-                        this.y++;
-                    }                    
+                    this.y = translationDirection == TranslationDirection.Forewards ? this.y - 1 : this.y + 1;
                     break;
                 case 'W':
-                    if (translationDirection == TranslationDirection.Forewards)
-                    {
-                        this.x--;
-                    }
-                    else
-                    {
-                        this.x++;
-                    }                    
+                    this.x = translationDirection == TranslationDirection.Forewards ? this.x - 1 : this.x + 1;
                     break;
             }
-        }
 
-        public int GetCurrentXPosition()
-        {
-            return this.x;
-        }
-
-        public int GetCurrentYPosition()
-        {
-            return this.y;
+            this.TranslationStream.OnNext(new RoverPosition(this.x, this.y, this.currentDirection));
         }
     }
 }

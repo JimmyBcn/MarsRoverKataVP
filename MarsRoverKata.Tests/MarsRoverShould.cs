@@ -9,9 +9,18 @@ namespace MarsRoverKata.Tests
         [TestMethod]
         public void ChangeOrientationAccordinglyWhenRotatingRight()
         {
-            var rover = new MarsRover();
-            rover.SendCommands("FLFFLBLFFFRF");
-            Assert.AreEqual(new RoverPosition(1, 1, 'S'), rover.Ship.Position);
+            // Arrange
+            var bus = new MarsRoverBus();
+            var ship = new MarsRoverShip(bus);
+
+            // Act
+            bus.SendCommands("FLFFLBLFFFRF");
+
+            // Assert
+            Assert.AreEqual(new RoverPosition(1, 1, 'S'), ship.Position);
+
+            // Clean
+            ship.Dispose();
         }
     }
 }
